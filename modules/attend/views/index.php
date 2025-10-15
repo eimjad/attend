@@ -2,12 +2,11 @@
 // this view renders the attendance page. $module_path available from controller
 ?>
 
-
 <div class="attend-wrapper">
 <h2>Attendance</h2>
 
 
-<div id="first-time-form" class="card">
+<div id="first-time-form" class="card" style="padding:1em">
 <p>First time on this device? Enter your details:</p>
 <label>Full name<br>
 <input type="text" id="attend-fullname" placeholder="Full name">

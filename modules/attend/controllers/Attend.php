@@ -2,13 +2,13 @@
 class Attend extends Trongate {
 
   // Office UIN
-  private $office_lat = 6.229751;
-  private $office_lng = 100.420016;
+  // private $office_lat = 6.229751;
+  // private $office_lng = 100.420016;
   // Office Tok Mat
-  // private $office_lat = 6.204174;
-  // private $office_lng = 100.417664;
+  private $office_lat = 6.204174;
+  private $office_lng = 100.417664;
 
-  private $allowed_radius_m = 100;
+  private $allowed_radius_m = 500;
 
   public function index() {
     $data['module_path'] = BASE_URL . "attend";

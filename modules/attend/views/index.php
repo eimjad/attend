@@ -3,7 +3,7 @@
 ?>
 
 <div class="attend-wrapper">
-<h2>Attendance</h2>
+<h2>Staff Attendance</h2>
 
 
 <div id="first-time-form" class="card" style="padding:1em">

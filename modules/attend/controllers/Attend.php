@@ -71,6 +71,7 @@ class Attend extends Trongate {
         'status'    => 'success',
         'message'   => 'Attendance Recorded: ' . ($message ? ' (note saved)' : ''),
         'in_radius' => $in_radius,
+        'action' => $action,
       ]);
     } catch (Exception $e) {
       http_response_code(500);

@@ -1,0 +1,10 @@
+CREATE TABLE attend_records (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  user_name VARCHAR(100) NOT NULL,
+  device_name VARCHAR(100) NOT NULL,
+  action ENUM('in','out') NOT NULL,
+  ts DATETIME NOT NULL,
+  lat DECIMAL(10,6) NULL,
+  lng DECIMAL(10,6) NULL,
+  in_radius TINYINT(1) DEFAULT 0
+);

@@ -1,6 +1,7 @@
 <?php
 // expects $report array, $year, $month
 ?>
+
 <h2>Report for <?=$month?>/<?=$year?></h2>
 <table class="attend-report-table">
 <thead>

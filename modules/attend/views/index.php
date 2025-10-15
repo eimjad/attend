@@ -5,54 +5,43 @@
 <div class="attend-wrapper">
 <h2>Staff Attendance</h2>
 
+<div id="user-info" style="margin-bottom:1em; display:none;">
+  <p><strong>Current User:</strong> <span id="user-name"></span><br>
+  <strong>Device:</strong> <span id="user-device"></span></p>
+</div>
 
 <div id="first-time-form" class="card" style="padding:1em">
-<p>First time on this device? Enter your details:</p>
-<label>Full name<br>
-<input type="text" id="attend-fullname" placeholder="Full name">
-</label><br>
-<label>Device name<br>
-<input type="text" id="attend-device" placeholder="Device name (e.g. My Phone)">
-</label><br>
-<button id="attend-save-device">Save</button>
+  <p>First time on this device? Please enter your details:</p>
+  <label>Full name<br>
+  <input type="text" id="attend-fullname" placeholder="Full name">
+  </label><br>
+  <label>Device name<br>
+  <input type="text" id="attend-device" placeholder="Device name (e.g. My Phone)">
+  </label><br>
+  <button id="attend-save-device">Save</button>
 </div>
-
 
 <div id="attend-controls" style="display:auto;">
-<p id="attend-status">Checking location...</p>
-<button id="btn-in">Clock In</button>
-<button id="btn-out">Clock Out</button>
-<div id="attend-message"></div>
+  
+  <textarea id="attend-note" rows="2" placeholder="Add a note if you're outside radius (optional)"></textarea><br>
+  
+  <button id="btn-in">Clock In</button>
+  <button id="btn-out">Clock Out</button>
+  <p id="attend-status" style="font-weight:bold;">Checking location...</p>
+  <div id="attend-message" style="margin-top:10px;"></div>
 </div>
 
-
-<!-- <hr>
-<h3>Monthly Report</h3>
-<label>Year: <input type="number" id="report-year" value="<?=date('Y')?>"></label>
-<label>Month: <input type="number" id="report-month" value="<?=date('m')?>" min="1" max="12"></label>
-<button id="load-report">Load Report</button>
-<div id="report-area"></div>
-</div> -->
-
-
 <script>
-
-  // Attendance module frontend logic
-
 var ATTEND_MODULE_PATH = '<?=BASE_URL?>attend';
-
 
 (function () {
   function qs(sel) { return document.querySelector(sel); }
-  function qsa(sel) { return document.querySelectorAll(sel); }
 
   const storageKey = 'attend_device_info_v1';
 
   function loadStored() {
-    try {
-      const raw = localStorage.getItem(storageKey);
-      return raw ? JSON.parse(raw) : null;
-    } catch (err) { return null; }
+    try { return JSON.parse(localStorage.getItem(storageKey)) || null; }
+    catch { return null; }
   }
 
   function saveStored(obj) {
@@ -62,14 +51,29 @@ var ATTEND_MODULE_PATH = '<?=BASE_URL?>attend';
   function showFirstTimeForm(show) {
     const form = qs('#first-time-form');
     const controls = qs('#attend-controls');
+    const info = qs('#user-info');
     if (!form || !controls) return;
     form.style.display = show ? 'block' : 'none';
     controls.style.display = show ? 'none' : 'block';
+    info.style.display = show ? 'none' : 'block';
   }
 
-  function setStatus(txt) {
+  function showUserInfo(info) {
+    const elName = qs('#user-name');
+    const elDevice = qs('#user-device');
+    if (elName && elDevice && info) {
+      elName.innerText = info.name || '-';
+      elDevice.innerText = info.device || '-';
+      qs('#user-info').style.display = 'block';
+    }
+  }
+
+  function setStatus(txt, color) {
     const el = qs('#attend-status');
-    if (el) el.innerText = txt;
+    if (el) {
+      el.innerText = txt;
+      el.style.color = color || 'inherit';
+    }
   }
 
   function haversineDistance(lat1, lon1, lat2, lon2) {
@@ -77,10 +81,10 @@ var ATTEND_MODULE_PATH = '<?=BASE_URL?>attend';
     var R = 6371;
     var dLat = toRad(lat2 - lat1);
     var dLon = toRad(lon2 - lon1);
-    var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
             Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
-            Math.sin(dLon / 2) * Math.sin(dLon / 2);
-    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
     return R * c;
   }
 
@@ -89,15 +93,12 @@ var ATTEND_MODULE_PATH = '<?=BASE_URL?>attend';
       cb(false, null);
       return;
     }
-
     navigator.geolocation.getCurrentPosition(function (pos) {
       const lat = pos.coords.latitude;
       const lng = pos.coords.longitude;
       const distance = haversineDistance(lat, lng, officeLat, officeLng) * 1000;
       cb(distance <= allowedRadiusM, { lat, lng, distance });
-    }, function () {
-      cb(false, null);
-    }, { enableHighAccuracy: true, timeout: 10000 });
+    }, function () { cb(false, null); }, { enableHighAccuracy:true, timeout:10000 });
   }
 
   function submitAttendance(action) {
@@ -107,18 +108,30 @@ var ATTEND_MODULE_PATH = '<?=BASE_URL?>attend';
       return;
     }
 
-    setStatus('Getting location...');
+    const message = qs('#attend-note').value.trim();
+
+    // setStatus('Getting location...');
     navigator.geolocation.getCurrentPosition(function (pos) {
-      const lat = pos.coords.latitude;
-      const lng = pos.coords.longitude;
-      postPayload({ action, name: info.name, device: info.device, lat, lng });
+      postPayload({
+        action, 
+        name: info.name,
+        device: info.device,
+        lat: pos.coords.latitude,
+        lng: pos.coords.longitude,
+        message
+      });
     }, function () {
-      postPayload({ action, name: info.name, device: info.device });
-    }, { enableHighAccuracy: true, timeout: 8000 });
+      postPayload({
+        action,
+        name: info.name,
+        device: info.device,
+        message
+      });
+    }, { enableHighAccuracy:true, timeout:8000 });
   }
 
   function postPayload(payload) {
-    setStatus('Submitting...');
+    // setStatus('Submitting...');
     fetch(ATTEND_MODULE_PATH + '/submit', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -127,122 +140,70 @@ var ATTEND_MODULE_PATH = '<?=BASE_URL?>attend';
     .then(r => r.json())
     .then(json => {
       if (json.status === 'success') {
-        setStatus('Saved.');
         const msg = qs('#attend-message');
+        // setStatus('Attendance recorded', json.in_radius ? 'green' : 'red');
         if (msg) {
           msg.innerText = json.message +
             (json.in_radius ? ' (in radius)' : ' (out of radius)');
         }
       } else {
-        setStatus('Error: ' + (json.message || 'Unknown'));
+        setStatus('Error: ' + (json.message || 'Unknown'), 'red');
       }
     })
-    .catch(() => {
-      setStatus('Network error');
-    });
-  }
-
-  function loadReport(year, month) {
-    setStatus('Loading report...');
-    fetch(ATTEND_MODULE_PATH + '/monthly_report/' + year + '/' + ('0' + month).slice(-2), {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(json => {
-      if (json.status === 'success') {
-        renderReport(json.report);
-        setStatus('Report loaded');
-      } else {
-        setStatus('Failed to load report');
-      }
-    })
-    .catch(() => setStatus('Network error'));
-  }
-
-  function renderReport(report) {
-    const area = qs('#report-area');
-    if (!area) return;
-    if (!report || report.length === 0) {
-      area.innerHTML = '<p>No data</p>';
-      return;
-    }
-
-    let html = '<table class="attend-report-table"><thead><tr>' +
-               '<th>User</th><th>Device</th><th>Date</th><th>In</th><th>Out</th><th>Hours</th>' +
-               '</tr></thead><tbody>';
-    report.forEach(r => {
-      html += '<tr>' +
-        '<td>' + escapeHtml(r.user_name) + '</td>' +
-        '<td>' + escapeHtml(r.device_name) + '</td>' +
-        '<td>' + r.day + '</td>' +
-        '<td>' + (r.first_in || '-') + '</td>' +
-        '<td>' + (r.last_out || '-') + '</td>' +
-        '<td>' + (r.worked_hours || '0') + '</td>' +
-      '</tr>';
-    });
-    html += '</tbody></table>';
-    area.innerHTML = html;
-  }
-
-  function escapeHtml(s) {
-    return String(s).replace(/[&<>\"']/g, c => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '\"': '&quot;', '\'': '&#39;'
-    }[c]));
+    .catch(() => setStatus('Network error', 'red'));
   }
 
   document.addEventListener('DOMContentLoaded', function () {
-    if (typeof ATTEND_MODULE_PATH === 'undefined') {
-      console.error('ATTEND_MODULE_PATH not defined. Check your view file.');
-      return;
-    }
-
     const stored = loadStored();
     showFirstTimeForm(!stored || !stored.name || !stored.device);
+    if (stored && stored.name && stored.device) showUserInfo(stored);
 
-    const saveBtn = qs('#attend-save-device');
-    if (saveBtn) {
-      saveBtn.addEventListener('click', function () {
-        const name = qs('#attend-fullname').value.trim();
-        const device = qs('#attend-device').value.trim();
-        if (!name || !device) {
-          alert('Name and device required');
-          return;
-        }
-        saveStored({ name, device });
-        showFirstTimeForm(false);
-      });
-    }
+    qs('#attend-save-device').addEventListener('click', function () {
+      const name = qs('#attend-fullname').value.trim();
+      const device = qs('#attend-device').value.trim();
+      if (!name || !device) return alert('Name and device required');
+      saveStored({ name, device });
+      showUserInfo({ name, device });
+      showFirstTimeForm(false);
+    });
 
     const btnIn = qs('#btn-in');
     const btnOut = qs('#btn-out');
+    const note = qs('#attend-note');
+
     if (btnIn) btnIn.addEventListener('click', () => submitAttendance('in'));
     if (btnOut) btnOut.addEventListener('click', () => submitAttendance('out'));
 
-    const reportBtn = qs('#load-report');
-    if (reportBtn) {
-      reportBtn.addEventListener('click', function () {
-        const y = qs('#report-year').value;
-        const m = qs('#report-month').value;
-        loadReport(y, m);
+    // Enable buttons when note has text
+    if (note) {
+      note.addEventListener('input', function () {
+        const hasText = note.value.trim().length > 0;
+        if (hasText) {
+          btnIn.disabled = false;
+          btnOut.disabled = false;
+        }
       });
     }
 
-    // Initial geolocation check
-    const officeLat = 6.229751;
-    const officeLng = 100.420016;
-    // const officeLat = 6.204195;
-    // const officeLng = 100.417649;
-    const allowed = 100; // meters
+    // Office UIN
+    // const officeLat = 6.229751;
+    // const officeLng = 100.420016;
+    // Office Tok Mat
+    const officeLat = 6.204174;
+    const officeLng = 100.417664;
+    // Office Alor Setar
+    // const officeLat = 6.103393;
+    // const officeLng = 100.352048;
+    const allowed = 100;
 
     checkLocation(allowed, officeLat, officeLng, function (ok) {
       const msg = ok
         ? 'You are within allowed radius'
-        : 'You are outside allowed radius; clock buttons disabled';
-      setStatus(msg);
+        : 'You are outside allowed radius';
+      setStatus(msg, ok ? 'green' : 'red');
       if (btnIn) btnIn.disabled = !ok;
       if (btnOut) btnOut.disabled = !ok;
     });
   });
 })();
-
 </script>

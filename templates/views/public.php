@@ -4,31 +4,36 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<base href="<?= BASE_URL ?>">
-	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+	<title>KKPK Web Access</title>
 	<link rel="stylesheet" href="css/trongate.css">
 	<link rel="stylesheet" href="css/app.css">
-	<title>KKPK Web Access</title>
+	<link rel="preconnect" href="https://fonts.googleapis.com">
+	<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+	<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
 	<div class="wrapper">
 		<header>
+			<!-- Mobile Header -->
 			<div id="header-sm">
 				<div id="hamburger" onclick="openSlideNav()">&#9776;</div>
 				<div class="logo">
 					<?= anchor(BASE_URL, WEBSITE_NAME) ?>
 				</div>
 				<div>
-					<?= anchor('account', '<i class="fa fa-user"></i>') ?>
-					<?= anchor('logout', '<i class="fa fa-sign-out"></i>') ?>
+					<!-- <?= anchor('account', '<i class="fa fa-user"></i>') ?> -->
+					<!-- <?= anchor('logout', '<i class="fa fa-sign-out"></i>') ?> -->
 				</div>
 			</div>
+			<!-- Desktop Header -->
 			<div id="header-lg">
 				<div class="logo">
 					<?= anchor(BASE_URL, WEBSITE_NAME) ?>
 				</div>
 				<div>
 					<ul id="top-nav">
-						<li><a href="<?= BASE_URL ?>attend"><i class="fa fa-user"></i> Staff Attendance</a></li>
+						<li><a href="<?= BASE_URL ?>attend"><i class="fa fa-user"></i> Attendance</a></li>
 						<!-- <li><a href="<?= BASE_URL ?>"><i class="fa fa-lightbulb-o"></i> About Us</a></li>
 						<li><a href="<?= BASE_URL ?>"><i class="fa fa-street-view"></i> Our Values</a></li>
 						<li><a href="<?= BASE_URL ?>"><i class="fa fa-gears"></i> How We Work</a></li>
@@ -43,6 +48,7 @@
 		<div class="container">
 			<!-- it's okay to remove the links and content here - everything is cool (DC) -->
 			<div>&copy; Copyright <?= date('Y') . ' ' . OUR_NAME ?></div>
+			<!-- <div><?= anchor('https://trongate.io', 'Powered by Trongate') ?></div> -->
 		</div>
 	</footer>
 	<div id="slide-nav">

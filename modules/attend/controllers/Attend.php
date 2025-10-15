@@ -7,8 +7,11 @@ class Attend extends Trongate {
   // Office Tok Mat
   private $office_lat = 6.204174;
   private $office_lng = 100.417664;
+  // Office Alor Setar
+  // private $office_lat = 6.103393;
+  // private $office_lng = 100.352048;
 
-  private $allowed_radius_m = 500;
+  private $allowed_radius_m = 100;
 
   public function index() {
     $data['module_path'] = BASE_URL . "attend";
@@ -16,7 +19,6 @@ class Attend extends Trongate {
   }
 
   public function submit() {
-    // Ensure JSON response
     header('Content-Type: application/json');
 
     if (!$this->is_ajax_request()) {
@@ -31,6 +33,7 @@ class Attend extends Trongate {
     $device = trim($payload['device'] ?? '');
     $lat = isset($payload['lat']) ? floatval($payload['lat']) : null;
     $lng = isset($payload['lng']) ? floatval($payload['lng']) : null;
+    $message = trim($payload['message'] ?? '');
 
     if ($name === '' || $device === '') {
       http_response_code(422);
@@ -41,18 +44,16 @@ class Attend extends Trongate {
     $in_radius = 0;
     if ($lat !== null && $lng !== null) {
       $distance = $this->get_distance_m($lat, $lng, $this->office_lat, $this->office_lng);
-      if ($distance <= $this->allowed_radius_m) {
-        $in_radius = 1;
-      }
+      if ($distance <= $this->allowed_radius_m) $in_radius = 1;
     }
 
-    // Build insert SQL and parameters
     $sql = "
       INSERT INTO attend_records
-        (user_name, device_name, action, ts, lat, lng, in_radius)
+        (user_name, device_name, action, ts, lat, lng, in_radius, message)
       VALUES
-        (:name, :device, :action, :ts, :lat, :lng, :in_radius)
+        (:name, :device, :action, :ts, :lat, :lng, :in_radius, :message)
     ";
+
     $params = [
       'name'      => $name,
       'device'    => $device,
@@ -61,13 +62,14 @@ class Attend extends Trongate {
       'lat'       => $lat,
       'lng'       => $lng,
       'in_radius' => $in_radius,
+      'message'   => $message
     ];
 
     try {
-      $this->model->query_bind($sql, $params, 'object');  // Using Trongate’s query() method
+      $this->model->query_bind($sql, $params, 'object');
       echo json_encode([
         'status'    => 'success',
-        'message'   => 'Recorded',
+        'message'   => 'Attendance Recorded: ' . ($message ? ' (note saved)' : ''),
         'in_radius' => $in_radius,
       ]);
     } catch (Exception $e) {

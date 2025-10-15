@@ -20,7 +20,8 @@
 }
 
 body {
-  font-family: Tahoma, Geneva, sans-serif;
+  font-family: "Roboto", sans-serif;
+  font-optical-sizing: auto;
   margin: 0;
   padding: 0;
   color: #555;
@@ -121,6 +122,13 @@ button:hover,
 .button:hover {
   background-color: var(--primary-dark);
   border: 1px solid var(--primary-darker);
+  color: var(--primary-color);
+}
+
+button:disabled,
+.button:disabled {
+  background-color: var(--inverse);
+  border: 1px solid var(--inverse);
   color: var(--primary-color);
 }
 
@@ -333,6 +341,7 @@ body .text-center, html .text-center { text-align: center; }
 .card {
   box-shadow: 0 4px 10px 0 rgba(0, 0, 0, 0.2), 0 4px 20px 0 rgba(0, 0, 0, 0.19);
   margin-bottom: 1em;
+  border-radius: 1em;
 }
 
 #overlay {

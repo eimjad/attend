@@ -6,5 +6,6 @@ CREATE TABLE attend_records (
   ts DATETIME NOT NULL,
   lat DECIMAL(10,6) NULL,
   lng DECIMAL(10,6) NULL,
-  in_radius TINYINT(1) DEFAULT 0
+  in_radius TINYINT(1) DEFAULT 0,
+  message TEXT NULL
 );

@@ -1,1 +1,1 @@
-Attendance record with geolocatioon
+Attendance record with geolocation
